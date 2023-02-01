@@ -2,17 +2,17 @@
 from __future__ import unicode_literals
 
 import sys
-import django
 
+import django
 from django.conf import settings
 
 # removed get_queryset <> get_query_set see, #29
-#from django.db.models import Manager
+# from django.db.models import Manager
 ## Monkey patch:
 #
-#try:
+# try:
 #    Manager.get_query_set = Manager.get_queryset
-#except AttributeError:
+# except AttributeError:
 #    Manager.get_queryset = Manager.get_query_set
 from django.core.exceptions import ImproperlyConfigured
 
@@ -42,20 +42,6 @@ try:
 except ImportError:
     from six.moves._thread import get_ident  # noqa
 
-try:
-    from django.conf.urls import url, include, handler404, handler500
-except ImportError:
-    from django.conf.urls import include, handler404, handler500  # pyflakes:ignore
-    from django.conf.urls import re_path as url # pyflakes:ignore
-
-try:
-    from django.conf.urls import patterns
-except ImportError:
-    try:
-        from django.conf.urls.defaults import patterns # pyflakes:ignore
-    except ImportError:
-        pass
-
 
 # Handle django.utils.encoding rename in 1.5 onwards.
 # smart_unicode -> smart_text
@@ -71,13 +57,17 @@ except ImportError:
 
 
 if django.VERSION >= (1, 6):
+
     def clean_manytomany_helptext(text):
         return text
+
 else:
     # Up to version 1.5 many to many fields automatically suffix
     # the `help_text` attribute with hardcoded text.
     def clean_manytomany_helptext(text):
-        if text.endswith(' Hold down "Control", or "Command" on a Mac, to select more than one.'):
+        if text.endswith(
+            ' Hold down "Control", or "Command" on a Mac, to select more than one.'
+        ):
             text = text[:-69]
         return text
 
@@ -93,6 +83,7 @@ BytesIO = six.BytesIO
 try:
     # Django 1.7 or over use the new application loading system
     from django.apps import apps
+
     get_model = apps.get_model
 except ImportError:
     from django.db.models.loading import get_model
@@ -125,7 +116,7 @@ else:
 
     class URLValidator(DjangoURLValidator):
         def __init__(self, *args, **kwargs):
-            self.message = kwargs.pop('message', self.message)
+            self.message = kwargs.pop("message", self.message)
             super(URLValidator, self).__init__(*args, **kwargs)
 
 
@@ -144,6 +135,7 @@ else:
 try:
     from django.utils.encoding import python_2_unicode_compatible
 except ImportError:
+
     def python_2_unicode_compatible(klass):
         """
         A decorator that defines __unicode__ and __str__ methods under Python 2.
@@ -151,13 +143,15 @@ except ImportError:
         To support Python 2 and 3 with a single code base, define a __str__ method
         returning text and apply this decorator to the class.
         """
-        if '__str__' not in klass.__dict__:
-            raise ValueError("@python_2_unicode_compatible cannot be applied "
-                             "to %s because it doesn't define __str__()." %
-                             klass.__name__)
+        if "__str__" not in klass.__dict__:
+            raise ValueError(
+                "@python_2_unicode_compatible cannot be applied "
+                "to %s because it doesn't define __str__()." % klass.__name__
+            )
         klass.__unicode__ = klass.__str__
-        klass.__str__ = lambda self: self.__unicode__().encode('utf-8')
+        klass.__str__ = lambda self: self.__unicode__().encode("utf-8")
         return klass
+
 
 try:
     import unittest2 as unittest
@@ -179,21 +173,26 @@ except ImportError:
 # Since get_user_model() causes a circular import if called when app models are
 # being loaded, the user_model_label should be used when possible, with calls
 # to get_user_model deferred to execution time
-user_model_label = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+user_model_label = getattr(settings, "AUTH_USER_MODEL", "auth.User")
 
 
 # get_username_field
 if django.VERSION >= (1, 5):
+
     def get_username_field():
         return get_user_model().USERNAME_FIELD
+
 else:
+
     def get_username_field():
-        return 'username'
+        return "username"
+
 
 try:
     from django.contrib.auth import get_user_model
 except ImportError:
     from django.contrib.auth.models import User
+
     get_user_model = lambda: User
 
 
@@ -203,7 +202,7 @@ def get_user_model_path():
     ``AUTH_USER_MODEL`` is set at settings it would be returned, otherwise
     ``auth.User`` is returned.
     """
-    return getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+    return getattr(settings, "AUTH_USER_MODEL", "auth.User")
 
 
 def get_user_permission_full_codename(perm):
@@ -213,7 +212,7 @@ def get_user_permission_full_codename(perm):
     ``myapp.CustomUser`` is used it would return ``myapp.change_customuser``.
     """
     User = get_user_model()
-    return '%s.%s_%s' % (User._meta.app_label, perm, User._meta.module_name)
+    return "%s.%s_%s" % (User._meta.app_label, perm, User._meta.module_name)
 
 
 def get_user_permission_codename(perm):
@@ -222,7 +221,7 @@ def get_user_permission_codename(perm):
     used, for 'change' perm this would return ``change_user`` and if
     ``myapp.CustomUser`` is used it would return ``change_customuser``.
     """
-    return get_user_permission_full_codename(perm).split('.')[1]
+    return get_user_permission_full_codename(perm).split(".")[1]
 
 
 def import_string(dotted_path):
@@ -232,7 +231,7 @@ def import_string(dotted_path):
     Backported from Django 1.7
     """
     try:
-        module_path, class_name = dotted_path.rsplit('.', 1)
+        module_path, class_name = dotted_path.rsplit(".", 1)
     except ValueError:
         msg = "%s doesn't look like a module path" % dotted_path
         six.reraise(ImportError, ImportError(msg), sys.exc_info()[2])
@@ -243,7 +242,9 @@ def import_string(dotted_path):
         return getattr(module, class_name)
     except AttributeError:
         msg = 'Module "%s" does not define a "%s" attribute/class' % (
-            dotted_path, class_name)
+            dotted_path,
+            class_name,
+        )
         six.reraise(ImportError, ImportError(msg), sys.exc_info()[2])
 
 
@@ -266,9 +267,9 @@ def rollback(using=None, sid=None):
         django.db.transaction.savepoint_rollback(sid)
     else:
         try:
-             django.db.transaction.rollback(using)
+            django.db.transaction.rollback(using)
         except django.db.transaction.TransactionManagementError:
-             django.db.transaction.set_rollback(True, using)
+            django.db.transaction.set_rollback(True, using)
 
 
 # HttpResponseBase only exists from 1.5 onwards
@@ -289,21 +290,24 @@ except NameError:
 
 # urlparse in python3 has been renamed to urllib.parse
 try:
-    from urlparse import urlparse, parse_qs, urlunparse
+    from urlparse import parse_qs, urlparse, urlunparse
 except ImportError:
-    from urllib.parse import urlparse, parse_qs, urlunparse
+    from urllib.parse import parse_qs, urlparse, urlunparse
 
 try:
-    from urllib import urlencode, unquote_plus
+    from urllib import unquote_plus, urlencode
 except ImportError:
-    from urllib.parse import urlencode, unquote_plus
+    from urllib.parse import unquote_plus, urlencode
 
 
 def create_permissions(*args, **kwargs):
     # create_permission API changed: skip the create_models (second
     # positional argument) if we have django 1.7+ and 2+ positional
     # arguments with the second one being a list/tuple
-    from django.contrib.auth.management import create_permissions as original_create_permissions
+    from django.contrib.auth.management import (
+        create_permissions as original_create_permissions,
+    )
+
     if django.VERSION < (1, 7) and len(args) > 1 and isinstance(args[1], (list, tuple)):
         args = args[:1] + args[2:]
     return original_create_permissions(*args, **kwargs)
@@ -337,7 +341,7 @@ else:
 # format_html (django 1.6)
 
 try:
-    from django.utils.html import format_html, conditional_escape
+    from django.utils.html import conditional_escape, format_html
 except ImportError:
     # support django < 1.5. Taken from django.utils.html
     from django.utils import html
@@ -349,9 +353,11 @@ except ImportError:
         of str.format or % interpolation to build up small HTML fragments.
         """
         args_safe = map(html.conditional_escape, args)
-        kwargs_safe = dict([(k, html.conditional_escape(v)) for (k, v) in
-                            six.iteritems(kwargs)])
+        kwargs_safe = dict(
+            [(k, html.conditional_escape(v)) for (k, v) in six.iteritems(kwargs)]
+        )
         return html.mark_safe(format_string.format(*args_safe, **kwargs_safe))
+
 
 try:
     from django.db import close_old_connections as close_connection
@@ -378,39 +384,90 @@ def get_template_loaders():
             loaders = engine.template_loaders
     else:  # Django < 1.8
         from django.template.loader import find_template_loader
+
         loaders = [
             find_template_loader(loader_name)
-            for loader_name in settings.TEMPLATE_LOADERS]
+            for loader_name in settings.TEMPLATE_LOADERS
+        ]
     return loaders
 
 
 if django.VERSION >= (2, 0):
     from django.urls import (
-        clear_url_caches, get_script_prefix, get_urlconf,
-        is_valid_path, resolve, reverse, reverse_lazy, set_script_prefix,
-        set_urlconf, NoReverseMatch, URLPattern,
-        URLResolver, Resolver404, ResolverMatch, get_ns_resolver, get_resolver, get_callable, get_mod_func
+        NoReverseMatch,
+        Resolver404,
+        ResolverMatch,
+        URLPattern,
+        URLResolver,
+        clear_url_caches,
+        get_callable,
+        get_mod_func,
+        get_ns_resolver,
+        get_resolver,
+        get_script_prefix,
+        get_urlconf,
+        is_valid_path,
+        resolve,
+        reverse,
+        reverse_lazy,
+        set_script_prefix,
+        set_urlconf,
     )
+
     RegexURLPattern = URLPattern
     RegexURLResolver = URLResolver
 elif django.VERSION >= (1, 10):
     import django.urls as urlresolvers
     from django.urls import (
-        clear_url_caches, get_script_prefix, get_urlconf,
-        is_valid_path, resolve, reverse, reverse_lazy, set_script_prefix,
-        set_urlconf, LocaleRegexProvider, LocaleRegexURLResolver, NoReverseMatch, RegexURLPattern,
-        RegexURLResolver, Resolver404, ResolverMatch, get_ns_resolver, get_resolver, get_callable, get_mod_func
+        LocaleRegexProvider,
+        LocaleRegexURLResolver,
+        NoReverseMatch,
+        RegexURLPattern,
+        RegexURLResolver,
+        Resolver404,
+        ResolverMatch,
+        clear_url_caches,
+        get_callable,
+        get_mod_func,
+        get_ns_resolver,
+        get_resolver,
+        get_script_prefix,
+        get_urlconf,
+        is_valid_path,
+        resolve,
+        reverse,
+        reverse_lazy,
+        set_script_prefix,
+        set_urlconf,
     )
+
     URLPattern = RegexURLPattern
     URLResolver = RegexURLResolver
 else:
     import django.core.urlresolvers as urlresolvers
     from django.core.urlresolvers import (
-        clear_url_caches, get_script_prefix, get_urlconf,
-        is_valid_path, resolve, reverse, reverse_lazy, set_script_prefix,
-        set_urlconf, LocaleRegexProvider, LocaleRegexURLResolver, NoReverseMatch, RegexURLPattern,
-        RegexURLResolver, Resolver404, ResolverMatch, get_ns_resolver, get_resolver, get_callable, get_mod_func
+        LocaleRegexProvider,
+        LocaleRegexURLResolver,
+        NoReverseMatch,
+        RegexURLPattern,
+        RegexURLResolver,
+        Resolver404,
+        ResolverMatch,
+        clear_url_caches,
+        get_callable,
+        get_mod_func,
+        get_ns_resolver,
+        get_resolver,
+        get_script_prefix,
+        get_urlconf,
+        is_valid_path,
+        resolve,
+        reverse,
+        reverse_lazy,
+        set_script_prefix,
+        set_urlconf,
     )
+
     URLPattern = RegexURLPattern
     URLResolver = RegexURLResolver
 
@@ -419,34 +476,43 @@ try:
 except ImportError:  # django < 1.5
     from .shortcuts import resolve_url
 
-
-
 from django.template.loader import render_to_string as render_to_string_django
 
 _context_instance_undefined = object()
 _dictionary_undefined = object()
 _dirs_undefined = object()
 
-def render_to_string(template_name, context=None,
-                     context_instance=_context_instance_undefined,
-                     dirs=_dirs_undefined,
-                     dictionary=_dictionary_undefined,
-                     request=None, using=None):
-    if (context_instance is _context_instance_undefined and dirs is _dirs_undefined and
-            dictionary is _dictionary_undefined):
+
+def render_to_string(
+    template_name,
+    context=None,
+    context_instance=_context_instance_undefined,
+    dirs=_dirs_undefined,
+    dictionary=_dictionary_undefined,
+    request=None,
+    using=None,
+):
+    if (
+        context_instance is _context_instance_undefined
+        and dirs is _dirs_undefined
+        and dictionary is _dictionary_undefined
+    ):
         if django.VERSION >= (1, 8):
             # Call new render_to_string with new arguments
             return render_to_string_django(template_name, context, request, using)
         else:
             # Call legacy render_to_string with new arguments
             from django.template import RequestContext
+
             context_instance = RequestContext(request) if request else None
             return render_to_string_django(template_name, context, context_instance)
     else:
         if django.VERSION >= (1, 10):
             # Call new render_to_string with legacy arguments
-            raise NotImplementedError('Django compat does not support calling post-1.8 render_to_string with pre-1.8 '
-                                      'keyword arguments')
+            raise NotImplementedError(
+                "Django compat does not support calling post-1.8 render_to_string with pre-1.8 "
+                "keyword arguments"
+            )
         else:
             # Call legacy render_to_string with legacy arguments
             if dictionary is _dictionary_undefined:
@@ -477,7 +543,9 @@ else:
     pass  # Loading models from __init__ is deprecated from 1.9. Import from compat.models instead
 
 # commit_on_success replaced by atomic in Django >=1.8
-atomic = commit_on_success = getattr(django.db.transaction, 'atomic', None) or getattr(django.db.transaction, 'commit_on_success')
+atomic = commit_on_success = getattr(django.db.transaction, "atomic", None) or getattr(
+    django.db.transaction, "commit_on_success"
+)
 
 # Removed from django.contrib.sites.models in Django 1.9
 try:
@@ -493,59 +561,75 @@ except ImportError:
 
 # the tests will try to import these
 __all__ = [
-    'add_to_builtins',
-    'get_model',
-    'get_model_name',
-    'get_user_model',
-    'get_username_field',
-    'import_string',
-    'commit',
-    'rollback',
-    'user_model_label',
-    'url',
-    'patterns',
-    'include',
-    'handler404',
-    'handler500',
-    'get_ident',
+    "add_to_builtins",
+    "get_model",
+    "get_model_name",
+    "get_user_model",
+    "get_username_field",
+    "import_string",
+    "commit",
+    "rollback",
+    "user_model_label",
+    "url",
+    "patterns",
+    "include",
+    "handler404",
+    "handler500",
+    "get_ident",
     # 'mock',
     # 'unittest',
-    'urlparse',
-    'parse_qs',
-    'urlunparse',
-    'urlencode',
-    'unquote_plus',
-    'DjangoJSONEncoder',
-    'JsonResponse',
-    'HttpResponseBase',
-    'python_2_unicode_compatible',
-    'URLValidator',
-    'EmailValidator',
-    'View',
-    'StringIO',
-    'BytesIO',
-    'clean_manytomany_helptext',
-    'smart_text',
-    'force_text',
-    'simplejson',
-    'import_module',
-    'VariableNode',
-    'slugify',
-    'GenericForeignKey',
-    'SortedDict',
-    'atomic',
-    'commit_on_success', # alias
-    'format_html',
-    'resolve_url',
-    'close_connection',
-    'get_template_loaders',
-    'LocaleRegexProvider', 'LocaleRegexURLResolver', 'NoReverseMatch',
-    'RegexURLPattern', 'RegexURLResolver', # Old names before 2.0, alias after
-    'URLPattern', 'URLResolver', # New names in 2.0, alias before
-    'Resolver404', 'ResolverMatch', 'clear_url_caches', 'get_callable', 'get_mod_func', 'get_ns_resolver',
-    'get_resolver', 'get_script_prefix', 'get_urlconf', 'is_valid_path', 'resolve', 'reverse', 'reverse_lazy',
-    'set_script_prefix', 'set_urlconf',
-    'render_to_string',
-    'get_current_site',
-    'admin_utils'
+    "urlparse",
+    "parse_qs",
+    "urlunparse",
+    "urlencode",
+    "unquote_plus",
+    "DjangoJSONEncoder",
+    "JsonResponse",
+    "HttpResponseBase",
+    "python_2_unicode_compatible",
+    "URLValidator",
+    "EmailValidator",
+    "View",
+    "StringIO",
+    "BytesIO",
+    "clean_manytomany_helptext",
+    "smart_text",
+    "force_text",
+    "simplejson",
+    "import_module",
+    "VariableNode",
+    "slugify",
+    "GenericForeignKey",
+    "SortedDict",
+    "atomic",
+    "commit_on_success",  # alias
+    "format_html",
+    "resolve_url",
+    "close_connection",
+    "get_template_loaders",
+    "LocaleRegexProvider",
+    "LocaleRegexURLResolver",
+    "NoReverseMatch",
+    "RegexURLPattern",
+    "RegexURLResolver",  # Old names before 2.0, alias after
+    "URLPattern",
+    "URLResolver",  # New names in 2.0, alias before
+    "Resolver404",
+    "ResolverMatch",
+    "clear_url_caches",
+    "get_callable",
+    "get_mod_func",
+    "get_ns_resolver",
+    "get_resolver",
+    "get_script_prefix",
+    "get_urlconf",
+    "is_valid_path",
+    "resolve",
+    "reverse",
+    "reverse_lazy",
+    "set_script_prefix",
+    "set_urlconf",
+    "render_to_string",
+    "get_current_site",
+    "admin_utils",
 ]
