@@ -45,7 +45,8 @@ except ImportError:
 try:
     from django.conf.urls import url, include, handler404, handler500
 except ImportError:
-    from django.conf.urls.defaults import url, include, handler404, handler500  # pyflakes:ignore
+    from django.conf.urls.defaults import include, handler404, handler500  # pyflakes:ignore
+    from django.conf.urls.defaults import re_path as url # pyflakes:ignore
 
 try:
     from django.conf.urls import patterns
